@@ -1,3 +1,5 @@
+import winCombos from "./combos.js";
+
 // define the variables
 let move = 0;
 let rows = 3;
@@ -12,50 +14,6 @@ let board = [
   ["", "", ""],
   ["", "", ""],
   ["", "", ""],
-];
-
-// define winning combinations in an array
-const winCombos = [
-  [
-    [0, 0],
-    [0, 1],
-    [0, 2],
-  ],
-  [
-    [1, 0],
-    [1, 1],
-    [1, 2],
-  ],
-  [
-    [2, 0],
-    [2, 1],
-    [2, 2],
-  ],
-  [
-    [0, 0],
-    [1, 0],
-    [2, 0],
-  ],
-  [
-    [0, 1],
-    [1, 1],
-    [2, 1],
-  ],
-  [
-    [0, 2],
-    [1, 2],
-    [2, 2],
-  ],
-  [
-    [0, 0],
-    [1, 1],
-    [2, 2],
-  ],
-  [
-    [0, 2],
-    [1, 1],
-    [2, 0],
-  ],
 ];
 
 // render the board
@@ -76,30 +34,74 @@ const renderBoard = () => {
       cell.id = `${i}-${j}`;
       cell.textContent = board[i][j];
       col.appendChild(cell);
-
-      // add event listener
-      cell.addEventListener("click", () => nextMove(cell, i, j));
     }
   }
 };
 
-// make the next move
-const nextMove = (cell, i, j) => {
-  // check if the winner has been declared or not and then continue
-  if (isWinner) return;
-  if (currentPlayer && cell.textContent === "") {
-    move++;
-    board[i][j] = currentPlayer;
-    cell.textContent = currentPlayer;
-    currentPlayer = players[move % 2];
-
-    checkWinner();
-  }
+// update the player
+const updatePlayer = () => {
+  currentPlayer = players[move % 2];
+  document.querySelector(".current-player").textContent = currentPlayer;
 };
 
 // start the game
 const startGame = () => {
   enableCells();
+  updatePlayer();
+
+  while (move > 0 && move <= 9 && isWinner === false) {
+    userMove();
+  }
+};
+
+// make a move by user
+const userMove = (event) => {
+  if (currentPlayer === "X" && isWinner === false) {
+    const cell = event.target;
+    const [i, j] = cell.id.split("-").map(Number);
+    board[i][j] = currentPlayer;
+    cell.textContent = currentPlayer;
+
+    move++;
+    checkWinner();
+  }
+
+  if (isWinner) {
+    disableCells();
+  } else {
+    updatePlayer();
+    computerMove();
+  }
+};
+
+// make a move by computer
+const computerMove = () => {
+  if (isWinner) return;
+
+  // fetch the empty cells and their index
+  const emptyCells = [];
+
+  // delay the computer move
+  setTimeout(() => {
+    for (let i = 0; i < rows; i++) {
+      for (let j = 0; j < cols; j++) {
+        if (board[i][j] === "") {
+          emptyCells.push([i, j]);
+        }
+      }
+    }
+
+    // randonly select a cell and make a computer move
+    const randomSelection = Math.floor(Math.random() * emptyCells.length);
+
+    const [row, col] = emptyCells[randomSelection];
+    board[row][col] = currentPlayer;
+    document.getElementById(`${row}-${col}`).textContent = currentPlayer;
+    move++;
+
+    checkWinner();
+    isWinner ? disableCells() : updatePlayer();
+  }, 1000);
 };
 
 // reset the game
@@ -124,6 +126,13 @@ const resetGame = () => {
     cell.textContent = "";
     cell.classList.remove("highlight");
   });
+
+  // disable the cells
+  disableCells();
+
+  // update player
+  currentPlayer = players[0];
+  updatePlayer();
 };
 
 // disable board cells to be clicked
@@ -164,11 +173,13 @@ const checkWinner = () => {
       document.getElementById(`${row3}-${col3}`).classList.add("highlight");
       isWinner = true;
       break;
+    } else {
+      updatePlayer();
     }
   }
   // check if the game is a draw
   if (move === 9 && isWinner === false) {
-    displayMessage("It is a draw! Try again.");
+    displayMessage("It's a draw! Try again.");
   }
 };
 
@@ -177,6 +188,10 @@ document.addEventListener("DOMContentLoaded", () => {
   renderBoard();
   disableCells();
   displayMessage(msg);
+
+  document.querySelectorAll(".cell").forEach((cell) => {
+    cell.addEventListener("click", userMove);
+  });
 
   document.querySelector("#start-btn").addEventListener("click", startGame);
   document.querySelector("#reset-btn").addEventListener("click", resetGame);
