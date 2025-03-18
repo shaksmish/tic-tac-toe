@@ -64,44 +64,51 @@ const userMove = (event) => {
 
     move++;
     checkWinner();
-  }
 
-  if (isWinner) {
-    disableCells();
-  } else {
-    updatePlayer();
-    computerMove();
+    if (isWinner) {
+      disableCells();
+      return;
+    } else {
+      setTimeout(() => updatePlayer(), 500);
+      computerMove();
+    }
   }
 };
 
 // make a move by computer
 const computerMove = () => {
-  if (isWinner) return;
-
-  // fetch the empty cells and their index
-  const emptyCells = [];
+  // check if it is the computer's turn
+  if (currentPlayer !== "O") return;
+  if (isWinner && move > 9) return;
+  disableCells();
 
   // delay the computer move
   setTimeout(() => {
-    for (let i = 0; i < rows; i++) {
-      for (let j = 0; j < cols; j++) {
-        if (board[i][j] === "") {
-          emptyCells.push([i, j]);
+    // fetch the empty cells and their index
+    const emptyCells = [];
+
+    if (move < 9) {
+      for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+          if (board[i][j] === "") {
+            emptyCells.push([i, j]);
+          }
         }
       }
+
+      // randonly select a cell and make a computer move
+      const randomSelection = Math.floor(Math.random() * emptyCells.length);
+
+      const [row, col] = emptyCells[randomSelection];
+      board[row][col] = currentPlayer;
+      document.getElementById(`${row}-${col}`).textContent = currentPlayer;
+      move++;
+
+      checkWinner();
+      isWinner ? disableCells() : updatePlayer();
+      enableCells();
     }
-
-    // randonly select a cell and make a computer move
-    const randomSelection = Math.floor(Math.random() * emptyCells.length);
-
-    const [row, col] = emptyCells[randomSelection];
-    board[row][col] = currentPlayer;
-    document.getElementById(`${row}-${col}`).textContent = currentPlayer;
-    move++;
-
-    checkWinner();
-    isWinner ? disableCells() : updatePlayer();
-  }, 1000);
+  }, 800);
 };
 
 // reset the game
