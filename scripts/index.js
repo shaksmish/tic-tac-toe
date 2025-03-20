@@ -6,7 +6,8 @@ let rows = 3;
 let cols = 3;
 const players = ["X", "O"];
 let currentPlayer = players[0];
-let msg = "Press start to play the game!";
+const START_MSG = "Press start to play the game!";
+let msg = START_MSG;
 let isWinner = false;
 
 // set the initial state of the board
@@ -125,7 +126,7 @@ const resetGame = () => {
     ["", "", ""],
     ["", "", ""],
   ];
-  msg = "";
+  displayMessage(START_MSG);
   isWinner = false;
 
   // clear the cells
